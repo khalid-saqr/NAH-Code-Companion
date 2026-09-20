@@ -18,6 +18,31 @@ The relationship is deliberately asymmetric:
 
 ---
 
+## Table of contents
+
+- [Quick start](#quick-start)
+- [The eight notebooks](#the-eight-notebooks)
+- [Notation used in this README](#notation-used-in-this-readme)
+- [VascuQuest and PWDB](#vascuquest-and-pwdb)
+- [How to read the notebooks](#how-to-read-the-notebooks)
+- [Chapter-by-chapter guide](#chapter-by-chapter-guide)
+  - [Chapter 1: The Classical Picture of Arterial Hemodynamics](#chapter-1-the-classical-picture-of-arterial-hemodynamics)
+  - [Chapter 2: The Mechanical Limits of Wall Shear Stress](#chapter-2-the-mechanical-limits-of-wall-shear-stress)
+  - [Chapter 3: Womersley Flow as the Classical Reference State](#chapter-3-womersley-flow-as-the-classical-reference-state)
+  - [Chapter 4: Constitutive Anisotropy and Transverse Dynamics](#chapter-4-constitutive-anisotropy-and-transverse-dynamics)
+  - [Chapter 5: Geometry-Parameterized Spectral Dynamics](#chapter-5-geometry-parameterized-spectral-dynamics)
+  - [Chapter 6: Wall Compliance and Mean Transport](#chapter-6-wall-compliance-and-mean-transport)
+  - [Chapter 7: Nonlinear Arterial Hemodynamics](#chapter-7-nonlinear-arterial-hemodynamics)
+  - [Chapter 8: Computing the Theory](#chapter-8-computing-the-theory)
+- [Reproducibility outputs](#reproducibility-outputs)
+- [Deterministic representative-subject rule](#deterministic-representative-subject-rule)
+- [Interpretation boundaries](#interpretation-boundaries)
+- [Reproducibility and evidence discipline](#reproducibility-and-evidence-discipline)
+- [Repository layout](#repository-layout)
+- [Data and software provenance](#data-and-software-provenance)
+- [Recommended reading workflow](#recommended-reading-workflow)
+- [Scope](#scope)
+
 ## Quick start
 
 The released execution contract is **Google Colab + Run all**.
@@ -43,7 +68,7 @@ The notebooks pin VascuQuest to commit [<code>8307147d72e7a6f3ea3135895bd6f52927
 | 3 | **Womersley Flow as the Classical Reference State** | [GitHub](Notebooks/Chapter_03_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_03_VascuQuest_Companion.ipynb) | Exact harmonic transfer functions, flow-rate and wall-shear response, asymptotic limits, and multiharmonic rigid-Womersley reconstruction. |
 | 4 | **Constitutive Anisotropy and Transverse Dynamics** | [GitHub](Notebooks/Chapter_04_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_04_VascuQuest_Companion.ipynb) | Coupled axial–azimuthal dynamics, isotropic recovery, vorticity channels, Lamb-vector observables, and controlled constitutive sensitivity. |
 | 5 | **Geometry-Parameterized Spectral Dynamics** | [GitHub](Notebooks/Chapter_05_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_05_VascuQuest_Companion.ipynb) | Fourier pseudospectral evolution, spectral redistribution, energy diagnostics, mechanism-off tests, and separation of resolved geometry from reduced coefficient parameterization. |
-| 6 | **Wall Compliance and Mean Transport** | [GitHub](Notebooks/Chapter_06_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_06_VascuQuest_Companion.ipynb) | Finite-$k$ compliant response, second-order streaming, moving-interface traction, limiting-case recovery, and wall-motion/pressure–area context. |
+| 6 | **Wall Compliance and Mean Transport** | [GitHub](Notebooks/Chapter_06_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_06_VascuQuest_Companion.ipynb) | Finite-wavenumber compliant response, second-order streaming, moving-interface traction, limiting-case recovery, and wall-motion/pressure–area context. |
 | 7 | **Nonlinear Arterial Hemodynamics** | [GitHub](Notebooks/Chapter_07_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_07_VascuQuest_Companion.ipynb) | Common quadratic convolution examined through separate constitutive, geometry, and compliance branches without constructing an additive multiphysics model. |
 | 8 | **Computing the Theory** | [GitHub](Notebooks/Chapter_08_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_08_VascuQuest_Companion.ipynb) | Numerical representation, transforms, Bessel evaluation, radial solvers, pseudospectral evolution, finite differences, quadrature, convergence, and provenance. |
 
@@ -52,85 +77,92 @@ A convenience bundle of the eight notebooks is also available at [<code>Notebook
 
 ---
 
-## Scientific conventions shared by all notebooks
+## Notation used in this README
 
-The notebooks use the **book nomenclature**, not database-native shorthand, for reader-facing mechanics.
+The notation below follows the book. Every mathematical symbol used later in this README is defined here before its first scientific use.
 
-### Pressure-gradient sign convention
+| Symbol | Definition |
+|---|---|
+| $r$ | radial coordinate. |
+| $R$ | vessel radius. |
+| $x=r/R$ | normalized radial coordinate. |
+| $z$ | dimensional axial coordinate. |
+| $t$ | dimensional time. |
+| $p$ | pressure. |
+| $\partial$ | partial-derivative operator. |
+| $\nabla$ | spatial gradient operator; $\nabla^2$ is the Laplacian. |
+| $G=-\partial p/\partial z$ | axial pressure-gradient forcing; positive $G$ drives positive axial flow. |
+| $\rho$ | fluid density. |
+| $\mu$ | dynamic viscosity. |
+| $\nu=\mu/\rho$ | kinematic viscosity. |
+| $Q$ | volumetric flow rate. |
+| $U$ | source flow-velocity waveform used by the VascuQuest flow reconstruction. |
+| $A$ | luminal cross-sectional area; when aligned source quantities are available, VascuQuest reconstructs $Q=UA$. |
+| $\Omega$ | fundamental angular frequency. |
+| $m$ | temporal harmonic index. |
+| $\Omega_m=m\Omega$ | angular frequency of temporal harmonic $m$. |
+| $\alpha=R\sqrt{\Omega/\nu}$ | fundamental Womersley number. |
+| $\alpha_m=\sqrt{m}\,\alpha$ | Womersley number of temporal harmonic $m$. |
+| $\delta_W$ | fundamental viscous penetration depth, with $\delta_W/R=\sqrt{2}/\alpha$. |
+| $\tau_w$ | wall shear stress. |
+| $\widehat{\tau}_w$ | complex harmonic wall-shear amplitude. |
+| $\mathbf n$ | unit normal to the wall. |
+| $\boldsymbol\sigma$ | Cauchy stress tensor. |
+| $\mathbf I$ | identity tensor. |
+| $\boldsymbol\tau_w$ | exact tangential wall-traction vector, $\boldsymbol\tau_w=(\mathbf I-\mathbf n\mathbf n)\boldsymbol\sigma\mathbf n$. |
+| $\mathbf u$ | fluid velocity vector. |
+| $u_z$ | axial velocity component. |
+| $u_\theta$ | azimuthal velocity component. |
+| $\mathbf e_z$ | axial unit basis vector. |
+| $\mathbf e_\theta$ | azimuthal unit basis vector. |
+| $\omega_\theta$ | azimuthal vorticity component. |
+| $\omega_z$ | axial vorticity component. |
+| $\boldsymbol\ell$ | Lamb vector. |
+| $\ell_r$ | radial component of the Lamb vector. |
+| $\Delta\ell_r$ | anisotropic increment in radial Lamb-vector response; superscripts $\mathrm{aniso}$ and $\mathrm{iso}$ label anisotropic and isotropic states. |
+| $\mathcal A_{ij}$ | constitutive-coefficient tensor entries used in Chapter 4; $i$ and $j$ are constitutive-direction indices. |
+| $L_0$ | axial reference length used in the Chapter 5 reduction. |
+| $\zeta=z/L_0$ | reduced axial coordinate. |
+| $T_0$ | reference time used in the Chapter 5 reduction. |
+| $s=t/T_0$ | reduced time. |
+| $\widetilde a$ | reduced axial disturbance field in Chapter 5. |
+| $\kappa$ | spatial reduced wavenumber conjugate to $\zeta$ in Chapter 5. |
+| $k$ | dimensional traveling-wave wavenumber used in the compliant-wave formulation. |
+| $b(\zeta)$ | reduced dispersive coefficient in the conceptual Chapter 5 model. |
+| $g(\zeta)$ | reduced dissipative coefficient in the conceptual Chapter 5 model. |
+| $c_0$ | exponent parameter entering the Chapter 5 fractional damping operator. |
+| $I_2$ | total quadratic spectral-energy diagnostic used in Chapter 5. |
+| $\mathcal R_{\mathrm{spec}}$ | spectral-broadening diagnostic; it is not total-energy growth and is unrelated to vessel radius $R$. |
+| $\mathcal M_G$ | explicit geometry-to-reduced-coefficient map; the subscript $G$ denotes geometry in this map, not the pressure-gradient variable $G$. |
+| $R_c$ | centerline curvature radius, distinct from vessel radius $R$. |
+| $\epsilon$ | small wall-motion parameter used for the Chapter 6 perturbation expansion. |
+| $O(\epsilon^n)$ | asymptotic order in that expansion; $n$ is the perturbation-order index. |
+| $\mathbf u_1$ | first-order oscillatory velocity field. |
+| $\mathbf u_2$ | second-order velocity field. |
+| $u_{1z}$ | axial component of $\mathbf u_1$. |
+| $u_{2z}$ | axial component of $\mathbf u_2$. |
+| $p_2$ | second-order pressure. |
+| $\eta_1$ | first-order wall displacement. |
+| $\langle\cdot\rangle$ | average over one forcing period. |
+| $\langle Q_{\mathrm{stream}}\rangle$ | period-averaged second-order streaming flow rate. |
+| $\langle\tau_w^{(2)}\rangle$ | period-averaged second-order fluid-on-wall traction in the Chapter 6 convention. |
+| $K_s$ | wall stiffness parameter in the Chapter 6 wall model; the subscript $s$ is a stiffness label, not the reduced-time variable $s$. |
+| $\tau_v$ | wall viscoelastic time parameter; the subscript $v$ labels the viscoelastic contribution. |
+| $T_w$ | wall-tension parameter; the subscript $w$ labels the wall. |
+| $\rho_w h_w$ | wall areal inertia; $\rho_w$ is wall density and $h_w$ is wall thickness. |
+| $j\in\{C,G,B\}$ | Chapter 7 branch label: constitutive ($C$), geometry-parameterized ($G$), or compliant-boundary ($B$); here branch label $G$ is distinct from the pressure-gradient variable $G$. |
+| $\mathbf q_j$ | state vector for branch $j$. |
+| $\mathcal L_{0,j}$ | reference linear operator for branch $j$. |
+| $\Delta\mathcal L_j$ | branch-specific change to the reference linear operator. |
+| $\mathcal N_j$ | branch-specific quadratic nonlinear operator. |
+| $\mathbf f_j$ | forcing for branch $j$. |
+| $\Gamma_E$ | logarithmic reduced-wave energy growth/decay diagnostic used in Chapter 8 verification of Case B; the subscript $E$ denotes energy. |
 
-The axial pressure-gradient forcing is
+Unless a chapter explicitly nondimensionalizes a calculation, the notebooks use the common blood properties $\rho=1060\ \mathrm{kg\,m^{-3}}$, $\mu=3.5\times10^{-3}\ \mathrm{Pa\,s}$, and $\nu=\mu/\rho$.
 
-$$
-G=-\frac{\partial p}{\partial z},
-$$
+Two spectral indices must remain distinct: $m$ is a **temporal harmonic index**, whereas $\kappa$ is a **spatial reduced wavenumber**. They belong to different transforms and must not be identified.
 
-so positive $G$ drives positive axial flow.
-
-### Radial coordinate and fluid properties
-
-The normalized radius is
-
-$$
-x=\frac{r}{R},
-$$
-
-with $R$ reserved for vessel radius. Unless a chapter explicitly nondimensionalizes a calculation, the common blood properties used by the notebooks are
-
-$$
-\rho=1060\ \mathrm{kg\,m^{-3}},
-\qquad
-\mu=3.5\times10^{-3}\ \mathrm{Pa\,s},
-\qquad
-\nu=\frac{\mu}{\rho}.
-$$
-
-### Womersley scales
-
-For fundamental angular frequency $\Omega$,
-
-$$
-\alpha=R\sqrt{\frac{\Omega}{\nu}},
-$$
-
-and harmonic $m$ has
-
-$$
-\Omega_m=m\Omega,
-\qquad
-\alpha_m=\sqrt{m}\,\alpha.
-$$
-
-The corresponding viscous penetration ratio is
-
-$$
-\frac{\delta_W}{R}=\frac{\sqrt{2}}{\alpha}.
-$$
-
-### Temporal and spatial spectral indices are different objects
-
-The temporal harmonic index $m$ and the Chapter 5 spatial reduced wavenumber $\kappa$ belong to different transforms and must not be identified. The dimensional traveling-wave wavenumber used later is $k$.
-
-Chapter 5 uses
-
-$$
-\zeta=\frac{z}{L_0},
-\qquad
-s=\frac{t}{T_0},
-$$
-
-and $\kappa$ is conjugate to $\zeta$.
-
-### Reserved symbols
-
-- $R$: vessel radius.
-- $R_c$: centerline curvature radius.
-- $\mathcal R_{\mathrm{spec}}$: spectral-broadening diagnostic; it is **not** vessel radius and **not** a total-energy growth measure.
-- $\tau_w$: wall shear stress; $\widehat\tau_w$: harmonic wall-shear amplitude.
-- $Q$: volumetric flow rate.
-
----
-
-## VascuQuest and PWDB: what enters the notebooks
+## VascuQuest and PWDB
 
 [VascuQuest](https://github.com/KNOWDYN/VascuQuest) is the data/provenance layer used by these companions. It provides reproducible access to supported PWDB quantities and geometry while preserving evidence provenance.
 
@@ -149,7 +181,7 @@ The notebook-facing physiological inputs include combinations of radius, heart r
 
 ---
 
-## A disciplined way to read the notebooks
+## How to read the notebooks
 
 Each notebook follows the same scientific spine:
 
@@ -167,10 +199,10 @@ Not every exploratory notebook figure belongs in the printed book. The book prom
 
 ---
 
-# Notebook guide
+## Chapter-by-chapter guide
 
 
-## Chapter 1 — The Classical Picture of Arterial Hemodynamics
+## Chapter 1: The Classical Picture of Arterial Hemodynamics
 
 **Question:** What does the classical Poiseuille–Womersley–WSS description resolve, and where does that information reside?
 
@@ -190,7 +222,7 @@ Useful outputs include the normalized Poiseuille field, Womersley-number populat
 
 ---
 
-## Chapter 2 — The Mechanical Limits of Wall Shear Stress
+## Chapter 2: The Mechanical Limits of Wall Shear Stress
 
 **Question:** What mechanically relevant information is lost when a wall traction is used as a surrogate for the neighboring fluid volume?
 
@@ -198,11 +230,11 @@ Useful outputs include the normalized Poiseuille field, Womersley-number populat
 
 The exact tangential traction is
 
-$$
+```math
 \boldsymbol\tau_w
 =
 (\mathbf I-\mathbf n\mathbf n)\,\boldsymbol\sigma\mathbf n.
-$$
+```
 
 The notebook then constructs distinct interior velocity fields with the same wall gradient and therefore the same Newtonian WSS, while their volumetric quantities differ.
 
@@ -218,7 +250,7 @@ The VascuQuest part is descriptive. Its scalar reference-state WSS projection is
 
 ---
 
-## Chapter 3 — Womersley Flow as the Classical Reference State
+## Chapter 3: Womersley Flow as the Classical Reference State
 
 **Question:** What does the rigid, straight, isotropic Womersley solution predict under harmonic forcing, and what does it exclude?
 
@@ -238,7 +270,7 @@ PWDB supplies physiological inputs such as $R$, $\Omega$, and $Q(t)$; the notebo
 
 ---
 
-## Chapter 4 — Constitutive Anisotropy and Transverse Dynamics
+## Chapter 4: Constitutive Anisotropy and Transverse Dynamics
 
 **Question:** Can constitutive directionality alone open transverse dynamics in the straight rigid-tube Womersley problem?
 
@@ -246,30 +278,30 @@ PWDB supplies physiological inputs such as $R$, $\Omega$, and $Q(t)$; the notebo
 
 The kinematic state is extended to
 
-$$
+```math
 \mathbf u(r,t)
 =
 u_\theta(r,t)\mathbf e_\theta
 +
 u_z(r,t)\mathbf e_z,
-$$
+```
 
-where the transverse degree of freedom is opened **constitutively**, not geometrically.
+where $u_\theta$ and $u_z$ are the azimuthal and axial components of $\mathbf u$, respectively. The transverse degree of freedom is opened **constitutively**, not geometrically.
 
 Key ideas to follow:
 
 - the coupled radial operators follow from the stated cylindrical constitutive law and are not interchangeable;
 - switching off the off-diagonal constitutive ratios must recover scalar Womersley flow and force $u_\theta\to0$ and $\omega_z\to0$;
 - classical Womersley flow already contains $\omega_\theta$; the constitutive extension opens the additional axial-vorticity channel $\omega_z$;
-- the inertial comparison is the anisotropic increment
+- the inertial comparison is the anisotropic increment, with $\mathrm{aniso}$ denoting the anisotropic state and $\mathrm{iso}$ the isotropic reference,
 
-$$
+```math
 \Delta\ell_r
 =
 \ell_r^{(\mathrm{aniso})}
 -
 \ell_r^{(\mathrm{iso})};
-$$
+```
 
 - nonlinear force spectra are constructed only after reconstructing the real velocity/vorticity fields.
 
@@ -278,7 +310,7 @@ VascuQuest supplies classical physiological context such as radius, heart rate a
 
 ---
 
-## Chapter 5 — Geometry-Parameterized Spectral Dynamics
+## Chapter 5: Geometry-Parameterized Spectral Dynamics
 
 **Question:** Can geometry-parameterized axial dynamics redistribute perturbation energy toward shorter axial scales while total quadratic energy still decays?
 
@@ -286,13 +318,13 @@ VascuQuest supplies classical physiological context such as radius, heart rate a
 
 The conceptual reduced equation is
 
-$$
+```math
 \frac{\partial \widetilde a}{\partial s}
 +\widetilde a\frac{\partial\widetilde a}{\partial\zeta}
 +b(\zeta)\frac{\partial^3\widetilde a}{\partial\zeta^3}
 +g(\zeta)\left(-\partial_\zeta^2\right)^{(1+c_0)/2}\widetilde a
 =0.
-$$
+```
 
 For the canonical calculations, $c_0=0$, so the dissipative Fourier symbol is proportional to $|\kappa|$.
 
@@ -306,59 +338,59 @@ Key ideas to follow:
 
 The canonical Case B calculation provides a useful numerical anchor:
 
-$$
+```math
 I_2(0)=6.911504,
 \qquad
 I_2(10)\approx4.984669,
 \qquad
 \mathcal R_{\mathrm{spec}}(10)\approx10.11474.
-$$
+```
 
 PWDB geometry is used to document arterial geometric scales and context. The notebook does **not** silently convert source geometry into $b$ or $g$: the geometry-to-coefficient map $\mathcal M_G$ requires an explicit modeling decision or calibration.
 
 ---
 
-## Chapter 6 — Wall Compliance and Mean Transport
+## Chapter 6: Wall Compliance and Mean Transport
 
 **Question:** Can a compliant wall convert a zero-mean oscillatory mode into persistent time-averaged transport through nonlinear self-interaction?
 
 [Open notebook on GitHub](Notebooks/Chapter_06_VascuQuest_Companion.ipynb) · [Open in Colab](https://colab.research.google.com/github/khalid-saqr/NAH-Code-Companion/blob/main/Notebooks/Chapter_06_VascuQuest_Companion.ipynb)
 
-The perturbation order is explicit:
+The perturbation order is explicit; $O(\epsilon^n)$ denotes terms of order $n$ in the small wall-motion parameter $\epsilon$:
 
-$$
+```math
 O(\epsilon):\ \text{oscillatory mode},
-$$
+```
 
-$$
+```math
 O(\epsilon^2):\ \text{mean field and second harmonic},
-$$
+```
 
-$$
+```math
 O(\epsilon^3):\ \text{envelope solvability}.
-$$
+```
 
 At second order, the period-averaged momentum equation contains the Reynolds-stress forcing
 
-$$
+```math
 \mu\nabla^2\langle\mathbf u_2\rangle
 -\nabla\langle p_2\rangle
 =
 \rho\left\langle
 (\mathbf u_1\cdot\nabla)\mathbf u_1
 \right\rangle.
-$$
+```
 
 The moving-wall boundary condition contributes at the same order:
 
-$$
+```math
 \left\langle u_{2z}(R)\right\rangle
 =
 -\left\langle
 \eta_1
 \left.\frac{\partial u_{1z}}{\partial r}\right|_R
 \right\rangle.
-$$
+```
 
 Key ideas to follow:
 
@@ -370,25 +402,25 @@ Key ideas to follow:
 
 For the canonical normalized Case C verification setting, the book/notebook reference values include
 
-$$
+```math
 \langle Q_{\mathrm{stream}}\rangle
 \approx
 7.5686\times10^{-9}\ \mathrm{m^3\,s^{-1}},
-$$
+```
 
 and the complete fluid-on-wall second-order traction is approximately
 
-$$
+```math
 \langle\tau_w^{(2)}\rangle
 \approx
 -2.1862\times10^{-4}\ \mathrm{Pa}.
-$$
+```
 
 These are **verification values**, not a calibrated arterial wall. VascuQuest provides wall-motion and pressure–area waveform context; it does not uniquely identify $K_s$, $\tau_v$, $T_w$, or $\rho_w h_w$ without a separate inverse model.
 
 ---
 
-## Chapter 7 — Nonlinear Arterial Hemodynamics
+## Chapter 7: Nonlinear Arterial Hemodynamics
 
 **Question:** What mechanical structure is genuinely common to the constitutive, geometry-parameterized, and compliant branches?
 
@@ -396,7 +428,7 @@ These are **verification values**, not a calibrated arterial wall. VascuQuest pr
 
 Chapter 7 is a **synthesis chapter**, not a fourth governing-model branch. Its branch-indexed form is
 
-$$
+```math
 \mathcal L_{0,j}\mathbf q_j
 +
 \Delta\mathcal L_j\mathbf q_j
@@ -406,7 +438,7 @@ $$
 \mathbf f_j,
 \qquad
 j\in\{C,G,B\}.
-$$
+```
 
 The common algebra is pairwise quadratic interaction. In harmonic form, output index $m$ is assembled from input pairs whose indices sum to $m$; the zero-frequency mean is therefore the $m=0$ member of the same convolution structure rather than a separate nonlinear algebra.
 
@@ -421,7 +453,7 @@ There is **no Case D**, no additive anisotropy–geometry–compliance PDE, and 
 
 ---
 
-## Chapter 8 — Computing the Theory
+## Chapter 8: Computing the Theory
 
 **Question:** What numerical machinery is required to reproduce and test the theory without obscuring the mechanics?
 
@@ -457,7 +489,7 @@ The VascuQuest section is deliberately separate from Cases A–C. It demonstrate
 
 ---
 
-## What Run all should leave behind
+## Reproducibility outputs
 
 A successful notebook run writes a chapter-specific set of reproducibility artifacts. Depending on the chapter, these include:
 
@@ -483,7 +515,7 @@ The corresponding subject metadata are written to the reproducibility outputs.
 
 ---
 
-## Interpretation boundaries that matter
+## Interpretation boundaries
 
 These notebooks intentionally refuse several tempting shortcuts:
 
